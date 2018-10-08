@@ -1498,7 +1498,7 @@ namespace ts {
     export function nodeCanBeDecorated(node: Node, parent: Node, grandparent: Node): boolean;
     export function nodeCanBeDecorated(node: Node, parent?: Node, grandparent?: Node): boolean {
         // private names cannot be used with decorators yet
-        if (isNamedDeclaration(node) && node.name.kind === SyntaxKind.PrivateName) {
+        if (isNamedDeclaration(node) && isPrivateName(node.name)) {
             return false;
         }
         switch (node.kind) {
@@ -1514,8 +1514,8 @@ namespace ts {
             case SyntaxKind.SetAccessor:
             case SyntaxKind.MethodDeclaration:
                 // if this method has a body and its parent is a class declaration, this is a valid target.
-                return (node as FunctionLikeDeclaration).body !== undefined
-                    && parent!.kind === SyntaxKind.ClassDeclaration
+                return (<FunctionLikeDeclaration>node).body !== undefined
+                    && parent!.kind === SyntaxKind.ClassDeclaration;
 
             case SyntaxKind.Parameter:
                 // if the parameter's parent has a body and its grandparent is a class declaration, this is a valid target;

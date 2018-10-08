@@ -6,11 +6,11 @@ tests/cases/conformance/classes/members/privateNames/privateNamesAndDecorators.t
     declare function dec<T>(target: T): T;
     
     class A {
-        @dec
+        @dec                // Error
         ~
 !!! error TS1206: Decorators are not valid here.
         #foo = 1;
-        @dec
+        @dec                // Error
         ~
 !!! error TS1206: Decorators are not valid here.
         #bar(): void { }
