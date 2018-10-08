@@ -6,14 +6,14 @@ declare function dec<T>(target: T): T;
 class A {
 >A : A
 
-    @dec
+    @dec                // Error
 >dec : <T>(target: T) => T
 
     #foo = 1;
 >#foo : number
 >1 : 1
 
-    @dec
+    @dec                // Error
 >dec : <T>(target: T) => T
 
     #bar(): void { }

@@ -2,9 +2,9 @@
 declare function dec<T>(target: T): T;
 
 class A {
-    @dec
+    @dec                // Error
     #foo = 1;
-    @dec
+    @dec                // Error
     #bar(): void { }
 }
 
