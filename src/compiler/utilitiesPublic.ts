@@ -1801,6 +1801,7 @@ namespace ts {
     export function isPropertyName(node: Node): node is PropertyName {
         const kind = node.kind;
         return kind === SyntaxKind.Identifier
+            || kind === SyntaxKind.PrivateIdentifier
             || kind === SyntaxKind.StringLiteral
             || kind === SyntaxKind.NumericLiteral
             || kind === SyntaxKind.ComputedPropertyName;
