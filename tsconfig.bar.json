@@ -1,0 +1,12 @@
+{
+    "compilerOptions": {
+        "noEmit": true,
+        "target": "es5",
+        "module": "commonjs",
+        "strict": true
+    },
+    "files": [
+        "types/bar.d.ts",
+        "src/bar.ts"
+    ]
+}
