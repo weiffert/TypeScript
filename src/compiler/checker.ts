@@ -9818,7 +9818,7 @@ namespace ts {
         }
 
         function isStaticPrivateIdentifierProperty(s: Symbol): boolean {
-            return !!s.valueDeclaration && isPrivateIdentifierPropertyDeclaration(s.valueDeclaration) && hasSyntacticModifier(s.valueDeclaration, ModifierFlags.Static);
+            return !!s.valueDeclaration && isPrivateIdentifierClassElementDeclaration(s.valueDeclaration) && hasSyntacticModifier(s.valueDeclaration, ModifierFlags.Static);
         }
 
         function resolveDeclaredMembers(type: InterfaceType): InterfaceTypeWithDeclaredMembers {
@@ -15007,7 +15007,7 @@ namespace ts {
 
         /** We approximate own properties as non-methods plus methods that are inside the object literal */
         function isSpreadableProperty(prop: Symbol): boolean {
-            return !some(prop.declarations, isPrivateIdentifierPropertyDeclaration) &&
+            return !some(prop.declarations, isPrivateIdentifierClassElementDeclaration) &&
                 (!(prop.flags & (SymbolFlags.Method | SymbolFlags.GetAccessor | SymbolFlags.SetAccessor)) ||
                     !prop.declarations.some(decl => isClassLike(decl.parent)));
         }
@@ -25974,7 +25974,7 @@ namespace ts {
          */
         function checkPropertyAccessibility(
             node: PropertyAccessExpression | QualifiedName | PropertyAccessExpression | VariableDeclaration | ParameterDeclaration | ImportTypeNode | PropertyAssignment | ShorthandPropertyAssignment | BindingElement,
-            isSuper: boolean, type: Type, prop: Symbol): boolean {
+            isSuper: boolean, type: Type, prop: Symbol, reportError = true): boolean {
             const flags = getDeclarationModifierFlagsFromSymbol(prop);
             const errorNode = node.kind === SyntaxKind.QualifiedName ? node.right : node.kind === SyntaxKind.ImportType ? node : node.name;
 
@@ -25988,7 +25988,9 @@ namespace ts {
                 //   a super property access is permitted and must specify a public static member function of the base class.
                 if (languageVersion < ScriptTarget.ES2015) {
                     if (symbolHasNonMethodDeclaration(prop)) {
-                        error(errorNode, Diagnostics.Only_public_and_protected_methods_of_the_base_class_are_accessible_via_the_super_keyword);
+                        if(reportError) {
+                            error(errorNode, Diagnostics.Only_public_and_protected_methods_of_the_base_class_are_accessible_via_the_super_keyword);
+                        }
                         return false;
                     }
                 }
@@ -25997,7 +25999,9 @@ namespace ts {
                     // This error could mask a private property access error. But, a member
                     // cannot simultaneously be private and abstract, so this will trigger an
                     // additional error elsewhere.
-                    error(errorNode, Diagnostics.Abstract_method_0_in_class_1_cannot_be_accessed_via_super_expression, symbolToString(prop), typeToString(getDeclaringClass(prop)!));
+                    if(reportError) {
+                        error(errorNode, Diagnostics.Abstract_method_0_in_class_1_cannot_be_accessed_via_super_expression, symbolToString(prop), typeToString(getDeclaringClass(prop)!));
+                    }
                     return false;
                 }
             }
@@ -26006,17 +26010,11 @@ namespace ts {
             if ((flags & ModifierFlags.Abstract) && isThisProperty(node) && symbolHasNonMethodDeclaration(prop)) {
                 const declaringClassDeclaration = getClassLikeDeclarationOfSymbol(getParentOfSymbol(prop)!);
                 if (declaringClassDeclaration && isNodeUsedDuringClassInitialization(node)) {
-                    error(errorNode, Diagnostics.Abstract_property_0_in_class_1_cannot_be_accessed_in_the_constructor, symbolToString(prop), getTextOfIdentifierOrLiteral(declaringClassDeclaration.name!)); // TODO: GH#18217
+                    if(reportError) {
+                        error(errorNode, Diagnostics.Abstract_property_0_in_class_1_cannot_be_accessed_in_the_constructor, symbolToString(prop), getTextOfIdentifierOrLiteral(declaringClassDeclaration.name!)); // TODO: GH#18217
+                    }
                     return false;
                 }
-            }
-
-            if (isPropertyAccessExpression(node) && isPrivateIdentifier(node.name)) {
-                if (!getContainingClass(node)) {
-                    error(errorNode, Diagnostics.Private_identifiers_are_not_allowed_outside_class_bodies);
-                    return false;
-                }
-                return true;
             }
 
             // Public properties are otherwise accessible.
@@ -26030,7 +26028,9 @@ namespace ts {
             if (flags & ModifierFlags.Private) {
                 const declaringClassDeclaration = getClassLikeDeclarationOfSymbol(getParentOfSymbol(prop)!)!;
                 if (!isNodeWithinClass(node, declaringClassDeclaration)) {
-                    error(errorNode, Diagnostics.Property_0_is_private_and_only_accessible_within_class_1, symbolToString(prop), typeToString(getDeclaringClass(prop)!));
+                    if(reportError) {
+                        error(errorNode, Diagnostics.Property_0_is_private_and_only_accessible_within_class_1, symbolToString(prop), typeToString(getDeclaringClass(prop)!));
+                    }
                     return false;
                 }
                 return true;
@@ -26055,7 +26055,9 @@ namespace ts {
                 // static member access is disallow
                 let thisParameter: ParameterDeclaration | undefined;
                 if (flags & ModifierFlags.Static || !(thisParameter = getThisParameterFromNodeContext(node)) || !thisParameter.type) {
-                    error(errorNode, Diagnostics.Property_0_is_protected_and_only_accessible_within_class_1_and_its_subclasses, symbolToString(prop), typeToString(getDeclaringClass(prop) || type));
+                    if(reportError) {
+                        error(errorNode, Diagnostics.Property_0_is_protected_and_only_accessible_within_class_1_and_its_subclasses, symbolToString(prop), typeToString(getDeclaringClass(prop) || type));
+                    }
                     return false;
                 }
 
@@ -26071,7 +26073,9 @@ namespace ts {
                 type = (type as TypeParameter).isThisType ? getConstraintOfTypeParameter(<TypeParameter>type)! : getBaseConstraintOfType(<TypeParameter>type)!; // TODO: GH#18217 Use a different variable that's allowed to be undefined
             }
             if (!type || !hasBaseType(type, enclosingClass)) {
-                error(errorNode, Diagnostics.Property_0_is_protected_and_only_accessible_through_an_instance_of_class_1, symbolToString(prop), typeToString(enclosingClass));
+                if(reportError) {
+                    error(errorNode, Diagnostics.Property_0_is_protected_and_only_accessible_through_an_instance_of_class_1, symbolToString(prop), typeToString(enclosingClass));
+                }
                 return false;
             }
             return true;
@@ -26260,6 +26264,9 @@ namespace ts {
             let prop: Symbol | undefined;
             if (isPrivateIdentifier(right)) {
                 const lexicallyScopedSymbol = lookupSymbolForPrivateIdentifierDeclaration(right.escapedText, right);
+                if(assignmentKind && lexicallyScopedSymbol && isMethodDeclaration(lexicallyScopedSymbol.valueDeclaration)) {
+                    grammarErrorOnNode(right, Diagnostics.Cannot_assign_to_private_method_0_Private_methods_are_not_writable, idText(right));
+                }
                 if (isAnyLike) {
                     if (lexicallyScopedSymbol) {
                         return apparentType;
@@ -26547,7 +26554,14 @@ namespace ts {
         }
 
         function getSuggestedSymbolForNonexistentProperty(name: Identifier | PrivateIdentifier | string, containingType: Type): Symbol | undefined {
-            return getSpellingSuggestionForName(isString(name) ? name : idText(name), getPropertiesOfType(containingType), SymbolFlags.Value);
+            let props = getPropertiesOfType(containingType);
+            if(typeof name !== "string") {
+                const parent = name.parent;
+                if(isPropertyAccessExpression(parent)) {
+                    props = filter(props, prop => isValidPropertyAccessForCompletions(parent, containingType, prop));
+                }
+            }
+            return getSpellingSuggestionForName(isString(name) ? name : idText(name), props, SymbolFlags.Value);
         }
 
         function getSuggestedSymbolForNonexistentJSXAttribute(name: Identifier | PrivateIdentifier | string, containingType: Type): Symbol | undefined {
@@ -26709,11 +26723,11 @@ namespace ts {
             }
             const prop = getPropertyOfType(type, propertyName);
             if (prop) {
-                if (isPropertyAccessExpression(node) && prop.valueDeclaration && isPrivateIdentifierPropertyDeclaration(prop.valueDeclaration)) {
+                if (prop.valueDeclaration && isPrivateIdentifierClassElementDeclaration(prop.valueDeclaration)) {
                     const declClass = getContainingClass(prop.valueDeclaration);
                     return !isOptionalChain(node) && !!findAncestor(node, parent => parent === declClass);
                 }
-                return checkPropertyAccessibility(node, isSuper, type, prop);
+                return checkPropertyAccessibility(node, isSuper, type, prop, /* reportError */ false);
             }
             // In js files properties of unions are allowed in completion
             return isInJSFile(node) && (type.flags & TypeFlags.Union) !== 0 && (<UnionType>type).types.some(elementType => isValidPropertyAccessWithType(node, isSuper, propertyName, elementType));
@@ -32202,10 +32216,6 @@ namespace ts {
             // Grammar checking
             if (!checkGrammarMethod(node)) checkGrammarComputedPropertyName(node.name);
 
-            if (isPrivateIdentifier(node.name)) {
-                error(node, Diagnostics.A_method_cannot_be_named_with_a_private_identifier);
-            }
-
             // Grammar checking for modifiers is done inside the function checkGrammarFunctionLikeDeclaration
             checkFunctionOrMethodDeclaration(node);
 
@@ -32242,7 +32252,7 @@ namespace ts {
             }
 
             function isInstancePropertyWithInitializerOrPrivateIdentifierProperty(n: Node): boolean {
-                if (isPrivateIdentifierPropertyDeclaration(n)) {
+                if (isPrivateIdentifierClassElementDeclaration(n)) {
                     return true;
                 }
                 return n.kind === SyntaxKind.PropertyDeclaration &&
@@ -32319,9 +32329,7 @@ namespace ts {
                 if (node.name.kind === SyntaxKind.ComputedPropertyName) {
                     checkComputedPropertyName(node.name);
                 }
-                if (isPrivateIdentifier(node.name)) {
-                    error(node.name, Diagnostics.An_accessor_cannot_be_named_with_a_private_identifier);
-                }
+
                 if (hasBindableName(node)) {
                     // TypeScript 1.0 spec (April 2014): 8.4.3
                     // Accessors for the same member name must specify the same accessibility.
@@ -32612,7 +32620,7 @@ namespace ts {
         }
 
         function isPrivateWithinAmbient(node: Node): boolean {
-            return (hasEffectiveModifier(node, ModifierFlags.Private) || isPrivateIdentifierPropertyDeclaration(node)) && !!(node.flags & NodeFlags.Ambient);
+            return (hasEffectiveModifier(node, ModifierFlags.Private) || isPrivateIdentifierClassElementDeclaration(node)) && !!(node.flags & NodeFlags.Ambient);
         }
 
         function getEffectiveDeclarationFlags(n: Declaration, flagsToCheck: ModifierFlags): ModifierFlags {
@@ -39419,7 +39427,7 @@ namespace ts {
                                 return grammarErrorOnNode(modifier, Diagnostics._0_modifier_must_precede_1_modifier, text, "abstract");
                             }
                         }
-                        else if (isPrivateIdentifierPropertyDeclaration(node)) {
+                        else if (isPrivateIdentifierClassElementDeclaration(node)) {
                             return grammarErrorOnNode(modifier, Diagnostics.An_accessibility_modifier_cannot_be_used_with_a_private_identifier);
                         }
                         flags |= modifierToFlag(modifier.kind);
@@ -39444,7 +39452,7 @@ namespace ts {
                         else if (flags & ModifierFlags.Abstract) {
                             return grammarErrorOnNode(modifier, Diagnostics._0_modifier_cannot_be_used_with_1_modifier, "static", "abstract");
                         }
-                        else if (isPrivateIdentifierPropertyDeclaration(node)) {
+                        else if (isPrivateIdentifierClassElementDeclaration(node)) {
                             return grammarErrorOnNode(modifier, Diagnostics._0_modifier_cannot_be_used_with_a_private_identifier, "static");
                         }
                         flags |= ModifierFlags.Static;
@@ -39508,7 +39516,7 @@ namespace ts {
                         else if ((node.parent.flags & NodeFlags.Ambient) && node.parent.kind === SyntaxKind.ModuleBlock) {
                             return grammarErrorOnNode(modifier, Diagnostics.A_declare_modifier_cannot_be_used_in_an_already_ambient_context);
                         }
-                        else if (isPrivateIdentifierPropertyDeclaration(node)) {
+                        else if (isPrivateIdentifierClassElementDeclaration(node)) {
                             return grammarErrorOnNode(modifier, Diagnostics._0_modifier_cannot_be_used_with_a_private_identifier, "declare");
                         }
                         flags |= ModifierFlags.Ambient;
@@ -40176,6 +40184,9 @@ namespace ts {
                 if (languageVersion < ScriptTarget.ES5) {
                     return grammarErrorOnNode(accessor.name, Diagnostics.Accessors_are_only_available_when_targeting_ECMAScript_5_and_higher);
                 }
+                if (languageVersion < ScriptTarget.ES2015 && isPrivateIdentifier(accessor.name)) {
+                    return grammarErrorOnNode(accessor.name, Diagnostics.Private_identifiers_are_only_available_when_targeting_ECMAScript_2015_and_higher);
+                }
                 if (accessor.body === undefined && !hasSyntacticModifier(accessor, ModifierFlags.Abstract)) {
                     return grammarErrorAtPos(accessor, accessor.end - 1, ";".length, Diagnostics._0_expected, "{");
                 }
@@ -40309,6 +40320,9 @@ namespace ts {
             }
 
             if (isClassLike(node.parent)) {
+                if (languageVersion < ScriptTarget.ES2015 && isPrivateIdentifier(node.name)) {
+                    return grammarErrorOnNode(node.name, Diagnostics.Private_identifiers_are_only_available_when_targeting_ECMAScript_2015_and_higher);
+                }
                 // Technically, computed properties in ambient contexts is disallowed
                 // for property declarations and accessors too, not just methods.
                 // However, property declarations disallow computed names in general,
