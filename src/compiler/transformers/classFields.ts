@@ -923,6 +923,8 @@ namespace ts {
                                 privateIdentifierInfo.weakMapName
                             );
                         }
+                        default:
+                            return undefined;
                     }
                 }
                 else {
