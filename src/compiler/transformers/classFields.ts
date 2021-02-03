@@ -1119,8 +1119,7 @@ namespace ts {
                 if (isGetAccessor(node)) {
                     const getterName = createHoistedVariableForPrivateName(text + "_get");
 
-                    if (previousInfo) {
-                        Debug.assert(previousInfo.placement === PrivateIdentifierPlacement.InstanceSetterOnly);
+                    if (previousInfo?.placement === PrivateIdentifierPlacement.InstanceSetterOnly) {
                         info = {
                             placement: PrivateIdentifierPlacement.InstanceGetterAndSetter,
                             getterName,
@@ -1137,8 +1136,7 @@ namespace ts {
                 else {
                     const setterName = createHoistedVariableForPrivateName(text + "_set");
 
-                    if (previousInfo) {
-                        Debug.assert(previousInfo.placement === PrivateIdentifierPlacement.InstanceGetterOnly);
+                    if (previousInfo?.placement === PrivateIdentifierPlacement.InstanceGetterOnly) {
                         info = {
                             placement: PrivateIdentifierPlacement.InstanceGetterAndSetter,
                             setterName,
