@@ -28,6 +28,8 @@ class A {
         // share the same lexical scope
         // https://tc39.es/proposal-class-fields/#prod-ClassBody
     }
+    #foo = 1;
+    static #foo = true; // error (duplicate)
 }
 _A_cls = A, _A_foo = new WeakMap();
 _A_foo_1 = { value: true }; // error (duplicate)
