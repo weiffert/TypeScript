@@ -24,6 +24,11 @@ namespace ts {
          * Stores if the identifier is static or not
          */
         isStatic: boolean;
+        /**
+         * Stores if the identifier declaration is valid or not. Reserved names (e.g. #constructor)
+         * or duplicate identifiers are considered invalid.
+         */
+        isValid: boolean;
     }
     interface PrivateIdentifierAccessorInfo extends PrivateIdentifierInfoBase {
         kind: PrivateIdentifierKind.Accessor;
@@ -260,8 +265,10 @@ namespace ts {
                 return visitEachChild(node, classElementVisitor, context);
             }
 
-            // leave invalid code as it is
-            if (isReservedPrivateName(node)) {
+            // leave invalid code untransformed
+            const info = accessPrivateIdentifier(node.name);
+            Debug.assert(info, "Undeclared private name for property declaration.");
+            if (!info.isValid) {
                 return node;
             }
 
@@ -309,22 +316,26 @@ namespace ts {
         function visitPropertyDeclaration(node: PropertyDeclaration) {
             Debug.assert(!some(node.decorators));
 
-            // leave invalid code as it is
-            if (isReservedPrivateName(node)) {
-                return node;
-            }
+            if (isPrivateIdentifier(node.name)) {
+                if (!shouldTransformPrivateElements) {
+                    // Initializer is elided as the field is initialized in transformConstructor.
+                    return factory.updatePropertyDeclaration(
+                        node,
+                        /*decorators*/ undefined,
+                        visitNodes(node.modifiers, visitor, isModifier),
+                        node.name,
+                        /*questionOrExclamationToken*/ undefined,
+                        /*type*/ undefined,
+                        /*initializer*/ undefined
+                    );
+                }
 
-            if (!shouldTransformPrivateElements && isPrivateIdentifier(node.name)) {
-                // Initializer is elided as the field is initialized in transformConstructor.
-                return factory.updatePropertyDeclaration(
-                    node,
-                    /*decorators*/ undefined,
-                    visitNodes(node.modifiers, visitor, isModifier),
-                    node.name,
-                    /*questionOrExclamationToken*/ undefined,
-                    /*type*/ undefined,
-                    /*initializer*/ undefined
-                );
+                // leave invalid code untransformed
+                const info = accessPrivateIdentifier(node.name);
+                Debug.assert(info, "Undeclared private name for property declaration.");
+                if (!info.isValid) {
+                    return node;
+                }
             }
             // Create a temporary variable to store a computed property name (if necessary).
             // If it's not inlineable, then we emit an expression after the class which assigns
@@ -770,11 +781,7 @@ namespace ts {
                 // Declare private names.
                 for (const member of node.members) {
                     if (isPrivateIdentifierClassElementDeclaration(member)) {
-                        const error = addPrivateIdentifierToEnvironment(member);
-                        if (error) {
-                            // leave invalid code as it is
-                            return node.members;
-                        }
+                        addPrivateIdentifierToEnvironment(member);
                     }
                 }
 
@@ -1172,14 +1179,15 @@ namespace ts {
             return pendingExpressions || (pendingExpressions = []);
         }
 
-        function addPrivateIdentifierToEnvironment(node: PrivateClassElementDeclaration): Error | void {
+        function addPrivateIdentifierToEnvironment(node: PrivateClassElementDeclaration) {
             const text = getTextOfPropertyName(node.name) as string;
             const env = getPrivateIdentifierEnvironment();
             const { weakSetName, classConstructor } = env;
             const assignmentExpressions: Expression[] = [];
 
             const privateName = node.name.escapedText;
-            let potentialDuplicatePrivateName = env.identifiers.has(privateName);
+            const previousInfo = env.identifiers.get(privateName);
+            const isValid = !isReservedPrivateName(node.name) && previousInfo === undefined;
 
             if (hasStaticModifier(node)) {
                 Debug.assert(classConstructor, "weakSetName should be set in private identifier environment");
@@ -1190,6 +1198,7 @@ namespace ts {
                         variableName,
                         brandCheckIdentifier: classConstructor,
                         isStatic: true,
+                        isValid,
                     });
                 }
                 else if (isMethodDeclaration(node)) {
@@ -1199,13 +1208,12 @@ namespace ts {
                         methodName: functionName,
                         brandCheckIdentifier: classConstructor,
                         isStatic: true,
+                        isValid,
                     });
                 }
                 else if (isGetAccessorDeclaration(node)) {
                     const getterName = createHoistedVariableForPrivateName(text + "_get", node);
-                    const previousInfo = env.identifiers.get(privateName);
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor && previousInfo.isStatic && !previousInfo.getterName) {
-                        potentialDuplicatePrivateName = false;
                         previousInfo.getterName = getterName;
                     }
                     else {
@@ -1215,14 +1223,13 @@ namespace ts {
                             setterName: undefined,
                             brandCheckIdentifier: classConstructor,
                             isStatic: true,
+                            isValid,
                         });
                     }
                 }
                 else if (isSetAccessorDeclaration(node)) {
                     const setterName = createHoistedVariableForPrivateName(text + "_set", node);
-                    const previousInfo = env.identifiers.get(privateName);
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor && previousInfo.isStatic && !previousInfo.setterName) {
-                        potentialDuplicatePrivateName = false;
                         previousInfo.setterName = setterName;
                     }
                     else {
@@ -1232,6 +1239,7 @@ namespace ts {
                             setterName,
                             brandCheckIdentifier: classConstructor,
                             isStatic: true,
+                            isValid,
                         });
                     }
                 }
@@ -1245,7 +1253,8 @@ namespace ts {
                     kind: PrivateIdentifierKind.Field,
                     brandCheckIdentifier: weakMapName,
                     isStatic: false,
-                    variableName: undefined
+                    variableName: undefined,
+                    isValid,
                 });
 
                 assignmentExpressions.push(factory.createAssignment(
@@ -1265,17 +1274,16 @@ namespace ts {
                     methodName: createHoistedVariableForPrivateName(text, node),
                     brandCheckIdentifier: weakSetName,
                     isStatic: false,
+                    isValid,
                 });
             }
             else if (isAccessor(node)) {
                 Debug.assert(weakSetName, "weakSetName should be set in private identifier environment");
-                const previousInfo = env.identifiers.get(privateName);
 
                 if (isGetAccessor(node)) {
                     const getterName = createHoistedVariableForPrivateName(text + "_get", node);
 
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor && !previousInfo.isStatic && !previousInfo.getterName) {
-                        potentialDuplicatePrivateName = false;
                         previousInfo.getterName = getterName;
                     }
                     else {
@@ -1285,6 +1293,7 @@ namespace ts {
                             setterName: undefined,
                             brandCheckIdentifier: weakSetName,
                             isStatic: false,
+                            isValid,
                         });
                     }
                 }
@@ -1292,7 +1301,6 @@ namespace ts {
                     const setterName = createHoistedVariableForPrivateName(text + "_set", node);
 
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor && !previousInfo.isStatic && !previousInfo.setterName) {
-                        potentialDuplicatePrivateName = false;
                         previousInfo.setterName = setterName;
                     }
                     else {
@@ -1302,16 +1310,13 @@ namespace ts {
                             setterName,
                             brandCheckIdentifier: weakSetName,
                             isStatic: false,
+                            isValid,
                         });
                     }
                 }
             }
             else {
                 Debug.assertNever(node, "Unknown class element type.");
-            }
-
-            if (potentialDuplicatePrivateName) {
-                return new Error("Duplicate private name");
             }
 
             getPendingExpressions().push(...assignmentExpressions);
@@ -1503,11 +1508,7 @@ namespace ts {
         );
     }
 
-    function isReservedPrivateName(node: ClassElement) {
-        if (!node.name || !isPrivateIdentifier(node.name)) {
-            return false;
-        }
-
-        return getTextOfPropertyName(node.name) === "#constructor";
+    function isReservedPrivateName(node: PrivateIdentifier) {
+        return node.escapedText === "#constructor";
     }
 }
