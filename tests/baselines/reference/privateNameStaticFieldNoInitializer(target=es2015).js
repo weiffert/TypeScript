@@ -8,7 +8,7 @@ class C2 {
 }
 
 //// [privateNameStaticFieldNoInitializer.js]
-var _a, _C_x, _b, _C2_x;
+let _a, _C_x, _b, _C2_x;
 const C = (_a = class {
     },
     _C_x = { value: void 0 },

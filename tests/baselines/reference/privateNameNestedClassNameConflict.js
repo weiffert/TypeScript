@@ -10,10 +10,10 @@ class A {
 
 
 //// [privateNameNestedClassNameConflict.js]
-var _A_foo;
+let _A_foo;
 class A {
     constructor() {
-        var _A_foo_1;
+        let _A_foo_1;
         _A_foo.set(this, void 0);
         class A {
             constructor() {

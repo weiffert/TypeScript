@@ -14,7 +14,7 @@ class C {
 
 //// [privateNamesAndIndexedAccess.js]
 "use strict";
-var _C_bar;
+let _C_bar;
 class C {
     constructor() {
         this.foo = 3;

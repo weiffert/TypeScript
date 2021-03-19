@@ -7,7 +7,7 @@ class A {
 
 
 //// [privateNameStaticAndStaticInitializer.js]
-var _a, _A_foo, _A_prop;
+let _a, _A_foo, _A_prop;
 class A {
 }
 _a = A;

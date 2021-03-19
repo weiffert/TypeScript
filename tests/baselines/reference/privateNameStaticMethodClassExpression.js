@@ -18,7 +18,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-var _a, _D_field, _D_method;
+let _a, _D_field, _D_method;
 const C = (_a = class D {
         static getClass() { return D; }
         static getField() { return __classPrivateFieldGet(C, _a, "f", _D_field); }

@@ -9,7 +9,7 @@ var v = class C {
  };
 
 //// [classExpressionWithStaticPropertiesES62.js]
-var _a;
+let _a;
 var v = (_a = class C {
     },
     _a.a = 1,

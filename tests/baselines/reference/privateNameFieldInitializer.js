@@ -6,7 +6,7 @@ class A {
 
 
 //// [privateNameFieldInitializer.js]
-var _A_field, _A_uninitialized;
+let _A_field, _A_uninitialized;
 class A {
     constructor() {
         _A_field.set(this, 10);

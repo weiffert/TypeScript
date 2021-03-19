@@ -3,7 +3,7 @@
 
 
 //// [classExpressionWithStaticPropertiesES64.js]
-var _a;
+let _a;
 (_a = class {
     },
     _a.x = 0,

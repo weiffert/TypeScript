@@ -11,10 +11,9 @@ for (let i = 0; i < 10; ++i) {
 
 
 //// [privateNameClassExpressionLoop.js]
-var _a;
 const array = [];
 for (let i = 0; i < 10; ++i) {
-    let _C_instances, _C_myField, _C_method, _C_accessor_get, _C_accessor_set;
+    let _C_instances, _C_myField, _C_method, _C_accessor_get, _C_accessor_set, _a;
     array.push((_a = class C {
             constructor() {
                 _C_instances.add(this);

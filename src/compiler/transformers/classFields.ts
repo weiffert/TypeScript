@@ -597,8 +597,7 @@ namespace ts {
                 const privateInstanceMethodsAndAccessors = getPrivateInstanceMethodsAndAccessors(node);
                 if (some(privateInstanceMethodsAndAccessors)) {
                     getPrivateIdentifierEnvironment().weakSetName = createHoistedVariableForClass(
-                        "instances",
-                        privateInstanceMethodsAndAccessors[0].name
+                        "instances"
                     );
                 }
             }
@@ -629,7 +628,7 @@ namespace ts {
 
             const staticProperties = getProperties(node, /*requireInitializer*/ false, /*isStatic*/ true);
             if (shouldTransformPrivateElements && some(node.members, m => hasStaticModifier(m) && !!m.name && isPrivateIdentifier(m.name))) {
-                const temp = factory.createTempVariable(hoistVariableDeclaration, /* reservedInNestedScopes */ true);
+                const temp = factory.createTempVariable(addBlockScopedVariable , /* reservedInNestedScopes */ true);
                 getPrivateIdentifierEnvironment().classConstructor = factory.cloneNode(temp);
                 getPendingExpressions().push(factory.createAssignment(
                     temp,
@@ -689,13 +688,14 @@ namespace ts {
             const extendsClauseElement = getEffectiveBaseTypeNode(node);
             const isDerivedClass = !!(extendsClauseElement && skipOuterExpressions(extendsClauseElement.expression).kind !== SyntaxKind.NullKeyword);
 
-            const isClassWithConstructorReference = resolver.getNodeCheckFlags(node) & NodeCheckFlags.ClassWithConstructorReference;
+            const classCheckFlags = resolver.getNodeCheckFlags(node);
+            const isClassWithConstructorReference = classCheckFlags & NodeCheckFlags.ClassWithConstructorReference;
             let temp: Identifier | undefined;
             function createClassTempVar() {
-                const classCheckFlags = resolver.getNodeCheckFlags(node);
-                const isClassWithConstructorReference = classCheckFlags & NodeCheckFlags.ClassWithConstructorReference;
-                const requiresBlockScopedVar = classCheckFlags & NodeCheckFlags.BlockScopedBindingInLoop;
-                return factory.createTempVariable(requiresBlockScopedVar ? addBlockScopedVariable : hoistVariableDeclaration, !!isClassWithConstructorReference);
+                return factory.createTempVariable(
+                    addBlockScopedVariable,
+                    !!isClassWithConstructorReference
+                );
             }
             if (shouldTransformPrivateElements && some(node.members, m => hasStaticModifier(m) && !!m.name && isPrivateIdentifier(m.name))) {
                 temp = createClassTempVar();
@@ -1168,7 +1168,7 @@ namespace ts {
             if (hasStaticModifier(node)) {
                 Debug.assert(classConstructor, "weakSetName should be set in private identifier environment");
                 if (isPropertyDeclaration(node)) {
-                    const variableName = createHoistedVariableForPrivateName(text, node);
+                    const variableName = createHoistedVariableForPrivateName(text);
                     env.identifiers.set(node.name.escapedText, {
                         kind: PrivateIdentifierKind.Field,
                         variableName,
@@ -1177,7 +1177,7 @@ namespace ts {
                     });
                 }
                 else if (isMethodDeclaration(node)) {
-                    const functionName = createHoistedVariableForPrivateName(text, node);
+                    const functionName = createHoistedVariableForPrivateName(text);
                     env.identifiers.set(node.name.escapedText, {
                         kind: PrivateIdentifierKind.Method,
                         methodName: functionName,
@@ -1186,7 +1186,7 @@ namespace ts {
                     });
                 }
                 else if (isGetAccessorDeclaration(node)) {
-                    const getterName = createHoistedVariableForPrivateName(text + "_get", node);
+                    const getterName = createHoistedVariableForPrivateName(text + "_get");
                     const previousInfo = env.identifiers.get(node.name.escapedText);
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
                         previousInfo.getterName = getterName;
@@ -1202,7 +1202,7 @@ namespace ts {
                     }
                 }
                 else if (isSetAccessorDeclaration(node)) {
-                    const setterName = createHoistedVariableForPrivateName(text + "_set", node);
+                    const setterName = createHoistedVariableForPrivateName(text + "_set");
                     const previousInfo = env.identifiers.get(node.name.escapedText);
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
                         previousInfo.setterName = setterName;
@@ -1222,7 +1222,7 @@ namespace ts {
                 }
             }
             else if (isPropertyDeclaration(node)) {
-                const weakMapName = createHoistedVariableForPrivateName(text, node);
+                const weakMapName = createHoistedVariableForPrivateName(text);
                 env.identifiers.set(node.name.escapedText, {
                     kind: PrivateIdentifierKind.Field,
                     brandCheckIdentifier: weakMapName,
@@ -1244,7 +1244,7 @@ namespace ts {
 
                 env.identifiers.set(node.name.escapedText, {
                     kind: PrivateIdentifierKind.Method,
-                    methodName: createHoistedVariableForPrivateName(text, node),
+                    methodName: createHoistedVariableForPrivateName(text),
                     brandCheckIdentifier: weakSetName,
                     isStatic: false,
                 });
@@ -1254,7 +1254,7 @@ namespace ts {
                 const previousInfo = env.identifiers.get(node.name.escapedText);
 
                 if (isGetAccessor(node)) {
-                    const getterName = createHoistedVariableForPrivateName(text + "_get", node);
+                    const getterName = createHoistedVariableForPrivateName(text + "_get");
 
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
                         previousInfo.getterName = getterName;
@@ -1270,7 +1270,7 @@ namespace ts {
                     }
                 }
                 else {
-                    const setterName = createHoistedVariableForPrivateName(text + "_set", node);
+                    const setterName = createHoistedVariableForPrivateName(text + "_set");
 
                     if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
                         previousInfo.setterName = setterName;
@@ -1293,23 +1293,17 @@ namespace ts {
             getPendingExpressions().push(...assignmentExpressions);
         }
 
-        function createHoistedVariableForClass(name: string, node: PrivateIdentifier): Identifier {
+        function createHoistedVariableForClass(name: string): Identifier {
             const { className } = getPrivateIdentifierEnvironment();
             const prefix = className ? `_${className}` : "";
             const identifier = factory.createUniqueName(`${prefix}_${name}`, GeneratedIdentifierFlags.Optimistic);
 
-            if (resolver.getNodeCheckFlags(node) & NodeCheckFlags.BlockScopedBindingInLoop) {
-                addBlockScopedVariable(identifier);
-            }
-            else {
-                hoistVariableDeclaration(identifier);
-            }
-
+            addBlockScopedVariable(identifier);
             return identifier;
         }
 
-        function createHoistedVariableForPrivateName(privateName: string, node: PrivateClassElementDeclaration): Identifier {
-            return createHoistedVariableForClass(privateName.substring(1), node.name);
+        function createHoistedVariableForPrivateName(privateName: string): Identifier {
+            return createHoistedVariableForClass(privateName.substring(1));
         }
 
         function accessPrivateIdentifier(name: PrivateIdentifier) {

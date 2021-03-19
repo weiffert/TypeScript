@@ -15,10 +15,10 @@ class B {
 
 
 //// [privateNameFieldClassExpression.js]
-var _B_foo, _B_foo2;
+let _B_foo, _B_foo2;
 class B {
     constructor() {
-        var _a, _b;
+        let _a, _b;
         _B_foo.set(this, (_a = class {
                 constructor() {
                     console.log("hello");

@@ -6,7 +6,7 @@ class A {
 
 
 //// [privateNameStaticFieldInitializer.js]
-var _a, _A_field, _A_uninitialized;
+let _a, _A_field, _A_uninitialized;
 class A {
 }
 _a = A;

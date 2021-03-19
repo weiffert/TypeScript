@@ -5,7 +5,7 @@ class A {
 
 
 //// [privateNameConstructorReserved.js]
-var _A_instances, _A_constructor;
+let _A_instances, _A_constructor;
 class A {
     constructor() {
         _A_instances.add(this);

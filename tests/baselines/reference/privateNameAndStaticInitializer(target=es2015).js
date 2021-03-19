@@ -8,7 +8,7 @@ class A {
 
 
 //// [privateNameAndStaticInitializer.js]
-var _A_foo, _A_prop;
+let _A_foo, _A_prop;
 class A {
     constructor() {
         _A_foo.set(this, 1);

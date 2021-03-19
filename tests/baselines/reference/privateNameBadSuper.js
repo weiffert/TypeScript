@@ -9,7 +9,7 @@ class A extends B {
 }
 
 //// [privateNameBadSuper.js]
-var _A_x;
+let _A_x;
 class B {
 }
 ;

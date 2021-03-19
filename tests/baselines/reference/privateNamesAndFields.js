@@ -23,7 +23,7 @@ var __classPrivateFieldSet = (this && this.__classPrivateFieldSet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot write private member to an object whose class did not declare it");
     return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
 };
-var _A_foo, _B_foo;
+let _A_foo, _B_foo;
 class A {
     constructor() {
         _A_foo.set(this, void 0);

@@ -34,7 +34,7 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-var _a, _C_prop, _C_propStatic;
+let _a, _C_prop, _C_propStatic;
 class C {
     constructor() {
         _C_prop.set(this, 1);

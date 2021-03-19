@@ -36,14 +36,15 @@ function foo(y, x, z) {
     y.c;
 }
 function foo2(y, x) {
-    var _a, _b;
-    if (y === void 0) { y = (_b = /** @class */ (function () {
+    var _a;
+    var _b;
+    if (y === void 0) { y = (_a = /** @class */ (function () {
             function class_2() {
-                this[_a] = x;
+                this[_b] = x;
             }
             return class_2;
         }()),
-        _a = x,
-        _b); }
+        _b = x,
+        _a); }
     if (x === void 0) { x = 1; }
 }

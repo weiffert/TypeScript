@@ -8,7 +8,7 @@ const c: C = a;
 
 
 //// [privateNamesUnique-4.js]
-var _C_something;
+let _C_something;
 class A1 {
 }
 class C {

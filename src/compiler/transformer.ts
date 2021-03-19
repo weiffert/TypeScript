@@ -393,6 +393,8 @@ namespace ts {
             lexicalEnvironmentFunctionDeclarations = undefined!;
             lexicalEnvironmentStatements = undefined!;
             lexicalEnvironmentFlags = LexicalEnvironmentFlags.None;
+            // Also start a block scope to allow declaration of block scope variables
+            startBlockScope();
         }
 
         /** Suspends the current lexical environment, usually after visiting a parameter list. */
@@ -420,7 +422,8 @@ namespace ts {
             Debug.assert(state < TransformationState.Completed, "Cannot modify the lexical environment after transformation has completed.");
             Debug.assert(!lexicalEnvironmentSuspended, "Lexical environment is suspended.");
 
-            let statements: Statement[] | undefined;
+            // End the block scope started when the lexical environment was started.
+            let statements: Statement[] | undefined = endBlockScope();
             if (lexicalEnvironmentVariableDeclarations ||
                 lexicalEnvironmentFunctionDeclarations ||
                 lexicalEnvironmentStatements) {
@@ -498,13 +501,13 @@ namespace ts {
             Debug.assert(state < TransformationState.Completed, "Cannot end a block scope after transformation has completed.");
             const statements: Statement[] | undefined = some(blockScopedVariableDeclarations) ?
                 [
-                    factory.createVariableStatement(
+                    setEmitFlags(factory.createVariableStatement(
                         /*modifiers*/ undefined,
                         factory.createVariableDeclarationList(
                             blockScopedVariableDeclarations.map(identifier => factory.createVariableDeclaration(identifier)),
                             NodeFlags.Let
                         )
-                    )
+                    ), EmitFlags.CustomPrologue)
                 ] : undefined;
             blockScopeStackOffset--;
             blockScopedVariableDeclarations = blockScopedVariableDeclarationsStack[blockScopeStackOffset];
@@ -515,8 +518,11 @@ namespace ts {
         }
 
         function addBlockScopedVariable(name: Identifier): void {
-            Debug.assert(blockScopeStackOffset > 0, "Cannot add a block scoped variable outside of an iteration body.");
-            (blockScopedVariableDeclarations || (blockScopedVariableDeclarations = [])).push(name);
+            Debug.assert(blockScopeStackOffset > 0, "Cannot add a block scoped variable outside of a started block scope.");
+            if (lexicalEnvironmentFlags & LexicalEnvironmentFlags.InParameters) {
+                setLexicalEnvironmentFlags(LexicalEnvironmentFlags.VariablesHoistedInParameters, true);
+            }
+            (blockScopedVariableDeclarations ??= []).push(name);
         }
 
         function requestEmitHelper(helper: EmitHelper): void {

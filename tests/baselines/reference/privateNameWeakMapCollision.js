@@ -9,7 +9,7 @@ function test() {
 
 //// [privateNameWeakMapCollision.js]
 function test() {
-    var _C_x;
+    let _C_x;
     let WeakMap;
     class C {
         constructor() {
