@@ -27,7 +27,8 @@ class Parent {
     }
     accessChildProps() {
         __classPrivateFieldGet(new Child(), _Parent_foo, "f"); // OK (`#foo` was added when `Parent`'s constructor was called on `child`)
-        __classPrivateFieldGet(Child, _Parent_cls, "f", _Parent_bar); // Error: not found
+        __classPrivateFieldGet(// OK (`#foo` was added when `Parent`'s constructor was called on `child`)
+        Child, _Parent_cls, "f", _Parent_bar); // Error: not found
     }
 }
 _Parent_cls = Parent, _Parent_foo = new WeakMap();

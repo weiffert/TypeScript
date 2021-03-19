@@ -28,7 +28,8 @@ class X {
 _X_cls = X, _X_m = function _X_m() {
     const X = {}; // shadow the class
     const _a = {}; // shadow the first generated var
-    __classPrivateFieldGet(X, _X_cls, "m", _X_m).call(// shadow the first generated var
+    __classPrivateFieldGet(// shadow the first generated var
+    X, _X_cls, "m", _X_m).call(// shadow the first generated var
     X); // Should check with X as the receiver with _b as the class constructor 
     return 1;
 };
