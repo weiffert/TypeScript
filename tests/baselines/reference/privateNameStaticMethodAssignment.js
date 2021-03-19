@@ -24,19 +24,19 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A3_method;
+let _A3_cls, _A3_method;
 class A3 {
     constructor(a, b) {
-        var _b;
-        __classPrivateFieldSet(A3, _a, () => { }, "m"); // Error, not writable 
+        var _a;
+        __classPrivateFieldSet(A3, _A3_cls, () => { }, "m"); // Error, not writable 
         __classPrivateFieldSet(// Error, not writable 
-        a, _a, () => { }, "m"); // Error, not writable 
+        a, _A3_cls, () => { }, "m"); // Error, not writable 
         __classPrivateFieldSet(// Error, not writable 
-        b, _a, () => { }, "m"); //Error, not writable 
-        ({ x: ({ set value(_b) { __classPrivateFieldSet(A3, _a, _b, "m"); } }).value } = { x: () => { } }); //Error, not writable 
-        let x = __classPrivateFieldGet(A3, _a, "m", _A3_method);
-        __classPrivateFieldSet(_b = b, _a, +__classPrivateFieldGet(_b, _a, "m", _A3_method) + 1, "m"); //Error, not writable 
+        b, _A3_cls, () => { }, "m"); //Error, not writable 
+        ({ x: ({ set value(_a) { __classPrivateFieldSet(A3, _A3_cls, _a, "m"); } }).value } = { x: () => { } }); //Error, not writable 
+        let x = __classPrivateFieldGet(A3, _A3_cls, "m", _A3_method);
+        __classPrivateFieldSet(_a = b, _A3_cls, +__classPrivateFieldGet(_a, _A3_cls, "m", _A3_method) + 1, "m"); //Error, not writable 
     }
     ;
 }
-_a = A3, _A3_method = function _A3_method() { };
+_A3_cls = A3, _A3_method = function _A3_method() { };

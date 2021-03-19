@@ -27,13 +27,13 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A1_prop_get, _A1_prop_set, _A1_roProp_get;
+let _A1_cls, _A1_prop_get, _A1_prop_set, _A1_roProp_get;
 class A1 {
     constructor(name) {
-        __classPrivateFieldSet(A1, _a, "", "a", _A1_prop_set);
-        __classPrivateFieldSet(A1, _a, "", "a"); // Error
-        console.log(__classPrivateFieldGet(A1, _a, "a", _A1_prop_get));
-        console.log(__classPrivateFieldGet(A1, _a, "a", _A1_roProp_get));
+        __classPrivateFieldSet(A1, _A1_cls, "", "a", _A1_prop_set);
+        __classPrivateFieldSet(A1, _A1_cls, "", "a"); // Error
+        console.log(__classPrivateFieldGet(A1, _A1_cls, "a", _A1_prop_get));
+        console.log(__classPrivateFieldGet(A1, _A1_cls, "a", _A1_roProp_get));
     }
 }
-_a = A1, _A1_prop_get = function _A1_prop_get() { return ""; }, _A1_prop_set = function _A1_prop_set(param) { }, _A1_roProp_get = function _A1_roProp_get() { return ""; };
+_A1_cls = A1, _A1_prop_get = function _A1_prop_get() { return ""; }, _A1_prop_set = function _A1_prop_set(param) { }, _A1_roProp_get = function _A1_roProp_get() { return ""; };

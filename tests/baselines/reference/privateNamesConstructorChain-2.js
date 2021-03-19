@@ -22,17 +22,17 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _Parent_foo, _Parent_bar, _Child_foo, _Child_bar;
+let _Parent_cls, _Parent_foo, _Parent_bar, _Child_foo, _Child_bar;
 class Parent {
     constructor() {
         _Parent_foo.set(this, 3);
     }
     accessChildProps() {
         __classPrivateFieldGet(new Child(), _Parent_foo, "f"); // OK (`#foo` was added when `Parent`'s constructor was called on `child`)
-        __classPrivateFieldGet(Child, _a, "f", _Parent_bar); // Error: not found
+        __classPrivateFieldGet(Child, _Parent_cls, "f", _Parent_bar); // Error: not found
     }
 }
-_a = Parent, _Parent_foo = new WeakMap();
+_Parent_cls = Parent, _Parent_foo = new WeakMap();
 _Parent_bar = { value: 5 };
 class Child extends Parent {
     constructor() {

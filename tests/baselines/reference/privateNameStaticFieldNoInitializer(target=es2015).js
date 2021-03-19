@@ -8,12 +8,12 @@ class C2 {
 }
 
 //// [privateNameStaticFieldNoInitializer.js]
-let _a, _C_x, _b, _C2_x;
-const C = (_a = class {
+let _C_cls, _C_x, _C2_cls, _C2_x;
+const C = (_C_cls = class {
     },
     _C_x = { value: void 0 },
-    _a);
+    _C_cls);
 class C2 {
 }
-_b = C2;
+_C2_cls = C2;
 _C2_x = { value: void 0 };

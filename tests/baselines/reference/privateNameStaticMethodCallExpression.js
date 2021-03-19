@@ -30,26 +30,26 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _AA_method, _AA_method2;
+let _AA_cls, _AA_method, _AA_method2;
 class AA {
     ;
     ;
     test() {
-        var _b, _c, _d;
-        __classPrivateFieldGet(AA, _a, "m", _AA_method).call(AA);
-        const func = __classPrivateFieldGet(AA, _a, "m", _AA_method);
+        var _a, _b, _c;
+        __classPrivateFieldGet(AA, _AA_cls, "m", _AA_method).call(AA);
+        const func = __classPrivateFieldGet(AA, _AA_cls, "m", _AA_method);
         func();
-        new (__classPrivateFieldGet(AA, _a, "m", _AA_method))();
+        new (__classPrivateFieldGet(AA, _AA_cls, "m", _AA_method))();
         const arr = [1, 2];
-        __classPrivateFieldGet(AA, _a, "m", _AA_method2).call(AA, 0, ...arr, 3);
-        const b = new (__classPrivateFieldGet(AA, _a, "m", _AA_method2))(0, ...arr, 3); //Error 
-        const str = __classPrivateFieldGet(AA, _a, "m", _AA_method2).bind(AA) `head${1}middle${2}tail`;
-        __classPrivateFieldGet((_b = AA.getClass()), _a, "m", _AA_method2).bind(_b) `test${1}and${2}`;
-        __classPrivateFieldGet((_c = AA.getClass()), _a, "m", _AA_method2).call(_c, 0, ...arr, 3);
-        const b2 = new (__classPrivateFieldGet(AA.getClass(), _a, "m", _AA_method2))(0, ...arr, 3); //Error 
-        const str2 = __classPrivateFieldGet((_d = AA.getClass()), _a, "m", _AA_method2).bind(_d) `head${1}middle${2}tail`;
+        __classPrivateFieldGet(AA, _AA_cls, "m", _AA_method2).call(AA, 0, ...arr, 3);
+        const b = new (__classPrivateFieldGet(AA, _AA_cls, "m", _AA_method2))(0, ...arr, 3); //Error 
+        const str = __classPrivateFieldGet(AA, _AA_cls, "m", _AA_method2).bind(AA) `head${1}middle${2}tail`;
+        __classPrivateFieldGet((_a = AA.getClass()), _AA_cls, "m", _AA_method2).bind(_a) `test${1}and${2}`;
+        __classPrivateFieldGet((_b = AA.getClass()), _AA_cls, "m", _AA_method2).call(_b, 0, ...arr, 3);
+        const b2 = new (__classPrivateFieldGet(AA.getClass(), _AA_cls, "m", _AA_method2))(0, ...arr, 3); //Error 
+        const str2 = __classPrivateFieldGet((_c = AA.getClass()), _AA_cls, "m", _AA_method2).bind(_c) `head${1}middle${2}tail`;
     }
     static getClass() { return AA; }
 }
-_a = AA, _AA_method = function _AA_method() { this.x = 10; }, _AA_method2 = function _AA_method2(a, ...b) { };
+_AA_cls = AA, _AA_method = function _AA_method() { this.x = 10; }, _AA_method2 = function _AA_method2(a, ...b) { };
 AA.x = 1;

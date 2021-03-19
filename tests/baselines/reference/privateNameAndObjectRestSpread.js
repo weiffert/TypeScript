@@ -34,7 +34,7 @@ var __rest = (this && this.__rest) || function (s, e) {
         }
     return t;
 };
-let _a, _C_prop, _C_propStatic;
+let _C_cls, _C_prop, _C_propStatic;
 class C {
     constructor() {
         _C_prop.set(this, 1);
@@ -45,10 +45,10 @@ class C {
         const rest = __rest(other, []);
         __classPrivateFieldGet(rest, _C_prop, "f");
         const statics = Object.assign({}, C);
-        __classPrivateFieldGet(statics, _a, "f", _C_propStatic);
+        __classPrivateFieldGet(statics, _C_cls, "f", _C_propStatic);
         const sRest = __rest(C, []);
-        __classPrivateFieldGet(sRest, _a, "f", _C_propStatic);
+        __classPrivateFieldGet(sRest, _C_cls, "f", _C_propStatic);
     }
 }
-_a = C, _C_prop = new WeakMap();
+_C_cls = C, _C_prop = new WeakMap();
 _C_propStatic = { value: 1 };

@@ -35,24 +35,24 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A_foo, _A_bar, _b, _B_foo;
+let _A_cls, _A_foo, _A_bar, _B_cls, _B_foo;
 class A {
     constructor() {
-        __classPrivateFieldSet(A, _a, 3, "f", _A_foo);
-        __classPrivateFieldGet(B, _a, "f", _A_foo); // Error
-        __classPrivateFieldGet(B, _a, "f", _A_bar); // Error
+        __classPrivateFieldSet(A, _A_cls, 3, "f", _A_foo);
+        __classPrivateFieldGet(B, _A_cls, "f", _A_foo); // Error
+        __classPrivateFieldGet(B, _A_cls, "f", _A_bar); // Error
     }
 }
-_a = A;
+_A_cls = A;
 _A_foo = { value: void 0 };
 _A_bar = { value: void 0 };
 class B extends A {
     constructor() {
         super();
-        __classPrivateFieldSet(B, _b, "some string", "f", _B_foo);
+        __classPrivateFieldSet(B, _B_cls, "some string", "f", _B_foo);
     }
 }
-_b = B;
+_B_cls = B;
 _B_foo = { value: void 0 };
 // We currently filter out static private identifier fields in `getUnmatchedProperties`.
 // We will need a more robust solution when we support static fields

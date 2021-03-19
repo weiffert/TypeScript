@@ -28,21 +28,21 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _Base_prop, _b, _Derived_derivedProp;
+let _Base_cls, _Base_prop, _Derived_cls, _Derived_derivedProp;
 class Base {
     static method(x) {
         Derived.; // error
         __classPrivateFieldSet(// error
-        Base, _a, 10, "f", _Base_prop);
+        Base, _Base_cls, 10, "f", _Base_prop);
     }
 }
-_a = Base;
+_Base_cls = Base;
 _Base_prop = { value: 123 };
 class Derived extends Base {
     static method(x) {
-        __classPrivateFieldGet(Derived, _b, "f", _Derived_derivedProp);
+        __classPrivateFieldGet(Derived, _Derived_cls, "f", _Derived_derivedProp);
         Base. = 10; // error
     }
 }
-_b = Derived;
+_Derived_cls = Derived;
 _Derived_derivedProp = { value: 10 };

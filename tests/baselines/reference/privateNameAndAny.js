@@ -34,35 +34,35 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A_foo, _A_baz, _A_m;
+let _A_cls, _A_foo, _A_baz, _A_m;
 class A {
     constructor() {
         _A_foo.set(this, true);
     }
     method(thing) {
         __classPrivateFieldGet(thing, _A_foo, "f"); // OK
-        __classPrivateFieldGet(thing, _a, "m", _A_m).call(// OK
+        __classPrivateFieldGet(thing, _A_cls, "m", _A_m).call(// OK
         thing);
-        __classPrivateFieldGet(thing, _a, "f", _A_baz);
+        __classPrivateFieldGet(thing, _A_cls, "f", _A_baz);
         thing.; // Error
         __classPrivateFieldGet(thing, _A_foo, "f").call(// Error
         thing);
     }
     methodU(thing) {
         __classPrivateFieldGet(thing, _A_foo, "f");
-        __classPrivateFieldGet(thing, _a, "m", _A_m).call(thing);
-        __classPrivateFieldGet(thing, _a, "f", _A_baz);
+        __classPrivateFieldGet(thing, _A_cls, "m", _A_m).call(thing);
+        __classPrivateFieldGet(thing, _A_cls, "f", _A_baz);
         thing.;
         __classPrivateFieldGet(thing, _A_foo, "f").call(thing);
     }
     methodN(thing) {
         __classPrivateFieldGet(thing, _A_foo, "f");
-        __classPrivateFieldGet(thing, _a, "m", _A_m).call(thing);
-        __classPrivateFieldGet(thing, _a, "f", _A_baz);
+        __classPrivateFieldGet(thing, _A_cls, "m", _A_m).call(thing);
+        __classPrivateFieldGet(thing, _A_cls, "f", _A_baz);
         thing.;
         __classPrivateFieldGet(thing, _A_foo, "f").call(thing);
     }
 }
-_a = A, _A_foo = new WeakMap(), _A_m = function _A_m() { };
+_A_cls = A, _A_foo = new WeakMap(), _A_m = function _A_m() { };
 _A_baz = { value: 10 };
 ;

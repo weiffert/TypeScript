@@ -30,21 +30,21 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A_fieldFunc_get, _A_fieldFunc2_get, _A_x;
+let _A_cls, _A_fieldFunc_get, _A_fieldFunc2_get, _A_x;
 class A {
     static test() {
-        var _b;
-        __classPrivateFieldGet(this, _a, "a", _A_fieldFunc_get).call(this);
-        const func = __classPrivateFieldGet(this, _a, "a", _A_fieldFunc_get);
+        var _a;
+        __classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc_get).call(this);
+        const func = __classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc_get);
         func();
-        new (__classPrivateFieldGet(this, _a, "a", _A_fieldFunc_get))();
+        new (__classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc_get))();
         const arr = [1, 2];
-        __classPrivateFieldGet(this, _a, "a", _A_fieldFunc2_get).call(this, 0, ...arr, 3);
-        const b = new (__classPrivateFieldGet(this, _a, "a", _A_fieldFunc2_get))(0, ...arr, 3);
-        const str = __classPrivateFieldGet(this, _a, "a", _A_fieldFunc2_get).bind(this) `head${1}middle${2}tail`;
-        __classPrivateFieldGet((_b = this.getClass()), _a, "a", _A_fieldFunc2_get).bind(_b) `test${1}and${2}`;
+        __classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc2_get).call(this, 0, ...arr, 3);
+        const b = new (__classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc2_get))(0, ...arr, 3);
+        const str = __classPrivateFieldGet(this, _A_cls, "a", _A_fieldFunc2_get).bind(this) `head${1}middle${2}tail`;
+        __classPrivateFieldGet((_a = this.getClass()), _A_cls, "a", _A_fieldFunc2_get).bind(_a) `test${1}and${2}`;
     }
     static getClass() { return A; }
 }
-_a = A, _A_fieldFunc_get = function _A_fieldFunc_get() { return function () { __classPrivateFieldSet(A, _a, 10, "f", _A_x); }; }, _A_fieldFunc2_get = function _A_fieldFunc2_get() { return function (a, ...b) { }; };
+_A_cls = A, _A_fieldFunc_get = function _A_fieldFunc_get() { return function () { __classPrivateFieldSet(A, _A_cls, 10, "f", _A_x); }; }, _A_fieldFunc2_get = function _A_fieldFunc2_get() { return function (a, ...b) { }; };
 _A_x = { value: 1 };

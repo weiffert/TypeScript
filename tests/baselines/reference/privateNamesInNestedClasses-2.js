@@ -23,7 +23,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A_x;
+let _A_cls, _A_x;
 class A {
     constructor() {
         let _B_x;
@@ -40,5 +40,5 @@ class A {
         _B_x = new WeakMap();
     }
 }
-_a = A;
+_A_cls = A;
 _A_x = { value: 5 };

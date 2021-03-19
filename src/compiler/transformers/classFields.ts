@@ -628,7 +628,7 @@ namespace ts {
 
             const staticProperties = getProperties(node, /*requireInitializer*/ false, /*isStatic*/ true);
             if (shouldTransformPrivateElements && some(node.members, m => hasStaticModifier(m) && !!m.name && isPrivateIdentifier(m.name))) {
-                const temp = factory.createTempVariable(addBlockScopedVariable , /* reservedInNestedScopes */ true);
+                const temp = createHoistedVariableForClass("cls");
                 getPrivateIdentifierEnvironment().classConstructor = factory.cloneNode(temp);
                 getPendingExpressions().push(factory.createAssignment(
                     temp,
@@ -688,17 +688,9 @@ namespace ts {
             const extendsClauseElement = getEffectiveBaseTypeNode(node);
             const isDerivedClass = !!(extendsClauseElement && skipOuterExpressions(extendsClauseElement.expression).kind !== SyntaxKind.NullKeyword);
 
-            const classCheckFlags = resolver.getNodeCheckFlags(node);
-            const isClassWithConstructorReference = classCheckFlags & NodeCheckFlags.ClassWithConstructorReference;
             let temp: Identifier | undefined;
-            function createClassTempVar() {
-                return factory.createTempVariable(
-                    addBlockScopedVariable,
-                    !!isClassWithConstructorReference
-                );
-            }
             if (shouldTransformPrivateElements && some(node.members, m => hasStaticModifier(m) && !!m.name && isPrivateIdentifier(m.name))) {
-                temp = createClassTempVar();
+                temp = createHoistedVariableForClass("cls");
                 getPrivateIdentifierEnvironment().classConstructor = factory.cloneNode(temp);
             }
 
@@ -731,7 +723,9 @@ namespace ts {
                 }
                 else {
                     const expressions: Expression[] = [];
-                    temp = temp ?? createClassTempVar ();
+                    const classCheckFlags = resolver.getNodeCheckFlags(node);
+                    const isClassWithConstructorReference = classCheckFlags & NodeCheckFlags.ClassWithConstructorReference;
+                    temp = temp ?? factory.createTempVariable(addBlockScopedVariable);
                     if (isClassWithConstructorReference) {
                         // record an alias as the class name is not in scope for statics.
                         enableSubstitutionForClassAliases();

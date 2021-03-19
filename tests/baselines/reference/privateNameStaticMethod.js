@@ -19,15 +19,15 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
 };
-let _a, _A1_method;
+let _A1_cls, _A1_method;
 class A1 {
     constructor() {
-        __classPrivateFieldGet(A1, _a, "m", _A1_method).call(A1, "");
-        __classPrivateFieldGet(A1, _a, "m", _A1_method).call(A1, 1); // Error
-        __classPrivateFieldGet(A1, _a, "m", _A1_method).call(// Error
+        __classPrivateFieldGet(A1, _A1_cls, "m", _A1_method).call(A1, "");
+        __classPrivateFieldGet(A1, _A1_cls, "m", _A1_method).call(A1, 1); // Error
+        __classPrivateFieldGet(A1, _A1_cls, "m", _A1_method).call(// Error
         A1); // Error 
     }
 }
-_a = A1, _A1_method = function _A1_method(param) {
+_A1_cls = A1, _A1_method = function _A1_method(param) {
     return "";
 };
