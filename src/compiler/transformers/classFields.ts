@@ -260,6 +260,11 @@ namespace ts {
                 return visitEachChild(node, classElementVisitor, context);
             }
 
+            // leave invalid code as it is
+            if (isReservedPrivateName(node)) {
+                return node;
+            }
+
             const functionName = getHoistedFunctionName(node);
             if (functionName) {
                 getPendingExpressions().push(
@@ -303,6 +308,12 @@ namespace ts {
 
         function visitPropertyDeclaration(node: PropertyDeclaration) {
             Debug.assert(!some(node.decorators));
+
+            // leave invalid code as it is
+            if (isReservedPrivateName(node)) {
+                return node;
+            }
+
             if (!shouldTransformPrivateElements && isPrivateIdentifier(node.name)) {
                 // Initializer is elided as the field is initialized in transformConstructor.
                 return factory.updatePropertyDeclaration(
@@ -1474,5 +1485,13 @@ namespace ts {
             /*typeArguments*/ undefined,
             [receiver]
         );
+    }
+
+    function isReservedPrivateName(node: PropertyDeclaration | MethodDeclaration | AccessorDeclaration) {
+        if (!isPrivateIdentifier(node.name)) {
+            return false;
+        }
+
+        return getTextOfPropertyName(node.name) === "#constructor";
     }
 }
