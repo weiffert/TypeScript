@@ -32742,17 +32742,6 @@ namespace ts {
                 for (let lexicalScope = getEnclosingBlockScopeContainer(node); !!lexicalScope; lexicalScope = getEnclosingBlockScopeContainer(lexicalScope)) {
                     getNodeLinks(lexicalScope).flags |= NodeCheckFlags.ContainsClassWithPrivateIdentifiers;
                 }
-
-                // If this is a private element in a class expression inside the body of a loop,
-                // then we must use a block-scoped binding to store the additional variables required
-                // to transform private elements.
-                if (isClassExpression(node.parent)) {
-                    const enclosingIterationStatement = getEnclosingIterationStatement(node.parent);
-                    if (enclosingIterationStatement) {
-                        getNodeLinks(node.name).flags |= NodeCheckFlags.BlockScopedBindingInLoop;
-                        getNodeLinks(enclosingIterationStatement).flags |= NodeCheckFlags.LoopWithCapturedBlockScopedBinding;
-                    }
-                }
             }
         }
 
