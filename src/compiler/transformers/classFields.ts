@@ -770,7 +770,11 @@ namespace ts {
                 // Declare private names.
                 for (const member of node.members) {
                     if (isPrivateIdentifierClassElementDeclaration(member)) {
-                        addPrivateIdentifierToEnvironment(member);
+                        const error = addPrivateIdentifierToEnvironment(member);
+                        if (error) {
+                            // leave invalid code as it is
+                            return node.members;
+                        }
                     }
                 }
 
@@ -1168,16 +1172,20 @@ namespace ts {
             return pendingExpressions || (pendingExpressions = []);
         }
 
-        function addPrivateIdentifierToEnvironment(node: PrivateClassElementDeclaration) {
+        function addPrivateIdentifierToEnvironment(node: PrivateClassElementDeclaration): Error | void {
             const text = getTextOfPropertyName(node.name) as string;
             const env = getPrivateIdentifierEnvironment();
             const { weakSetName, classConstructor } = env;
             const assignmentExpressions: Expression[] = [];
+
+            const privateName = node.name.escapedText;
+            let potentialDuplicatePrivateName = env.identifiers.has(privateName);
+
             if (hasStaticModifier(node)) {
                 Debug.assert(classConstructor, "weakSetName should be set in private identifier environment");
                 if (isPropertyDeclaration(node)) {
                     const variableName = createHoistedVariableForPrivateName(text, node);
-                    env.identifiers.set(node.name.escapedText, {
+                    env.identifiers.set(privateName, {
                         kind: PrivateIdentifierKind.Field,
                         variableName,
                         brandCheckIdentifier: classConstructor,
@@ -1186,7 +1194,7 @@ namespace ts {
                 }
                 else if (isMethodDeclaration(node)) {
                     const functionName = createHoistedVariableForPrivateName(text, node);
-                    env.identifiers.set(node.name.escapedText, {
+                    env.identifiers.set(privateName, {
                         kind: PrivateIdentifierKind.Method,
                         methodName: functionName,
                         brandCheckIdentifier: classConstructor,
@@ -1195,12 +1203,13 @@ namespace ts {
                 }
                 else if (isGetAccessorDeclaration(node)) {
                     const getterName = createHoistedVariableForPrivateName(text + "_get", node);
-                    const previousInfo = env.identifiers.get(node.name.escapedText);
-                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
+                    const previousInfo = env.identifiers.get(privateName);
+                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor && previousInfo.isStatic && !previousInfo.getterName) {
+                        potentialDuplicatePrivateName = false;
                         previousInfo.getterName = getterName;
                     }
                     else {
-                        env.identifiers.set(node.name.escapedText, {
+                        env.identifiers.set(privateName, {
                             kind: PrivateIdentifierKind.Accessor,
                             getterName,
                             setterName: undefined,
@@ -1211,12 +1220,13 @@ namespace ts {
                 }
                 else if (isSetAccessorDeclaration(node)) {
                     const setterName = createHoistedVariableForPrivateName(text + "_set", node);
-                    const previousInfo = env.identifiers.get(node.name.escapedText);
-                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
+                    const previousInfo = env.identifiers.get(privateName);
+                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor && previousInfo.isStatic && !previousInfo.setterName) {
+                        potentialDuplicatePrivateName = false;
                         previousInfo.setterName = setterName;
                     }
                     else {
-                        env.identifiers.set(node.name.escapedText, {
+                        env.identifiers.set(privateName, {
                             kind: PrivateIdentifierKind.Accessor,
                             getterName: undefined,
                             setterName,
@@ -1231,7 +1241,7 @@ namespace ts {
             }
             else if (isPropertyDeclaration(node)) {
                 const weakMapName = createHoistedVariableForPrivateName(text, node);
-                env.identifiers.set(node.name.escapedText, {
+                env.identifiers.set(privateName, {
                     kind: PrivateIdentifierKind.Field,
                     brandCheckIdentifier: weakMapName,
                     isStatic: false,
@@ -1250,7 +1260,7 @@ namespace ts {
             else if (isMethodDeclaration(node)) {
                 Debug.assert(weakSetName, "weakSetName should be set in private identifier environment");
 
-                env.identifiers.set(node.name.escapedText, {
+                env.identifiers.set(privateName, {
                     kind: PrivateIdentifierKind.Method,
                     methodName: createHoistedVariableForPrivateName(text, node),
                     brandCheckIdentifier: weakSetName,
@@ -1259,16 +1269,17 @@ namespace ts {
             }
             else if (isAccessor(node)) {
                 Debug.assert(weakSetName, "weakSetName should be set in private identifier environment");
-                const previousInfo = env.identifiers.get(node.name.escapedText);
+                const previousInfo = env.identifiers.get(privateName);
 
                 if (isGetAccessor(node)) {
                     const getterName = createHoistedVariableForPrivateName(text + "_get", node);
 
-                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
+                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor && !previousInfo.isStatic && !previousInfo.getterName) {
+                        potentialDuplicatePrivateName = false;
                         previousInfo.getterName = getterName;
                     }
                     else {
-                        env.identifiers.set(node.name.escapedText, {
+                        env.identifiers.set(privateName, {
                             kind: PrivateIdentifierKind.Accessor,
                             getterName,
                             setterName: undefined,
@@ -1280,11 +1291,12 @@ namespace ts {
                 else {
                     const setterName = createHoistedVariableForPrivateName(text + "_set", node);
 
-                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor) {
+                    if (previousInfo?.kind === PrivateIdentifierKind.Accessor && !previousInfo.isStatic && !previousInfo.setterName) {
+                        potentialDuplicatePrivateName = false;
                         previousInfo.setterName = setterName;
                     }
                     else {
-                        env.identifiers.set(node.name.escapedText, {
+                        env.identifiers.set(privateName, {
                             kind: PrivateIdentifierKind.Accessor,
                             getterName: undefined,
                             setterName,
@@ -1296,6 +1308,10 @@ namespace ts {
             }
             else {
                 Debug.assertNever(node, "Unknown class element type.");
+            }
+
+            if (potentialDuplicatePrivateName) {
+                return new Error("Duplicate private name");
             }
 
             getPendingExpressions().push(...assignmentExpressions);
@@ -1487,8 +1503,8 @@ namespace ts {
         );
     }
 
-    function isReservedPrivateName(node: PropertyDeclaration | MethodDeclaration | AccessorDeclaration) {
-        if (!isPrivateIdentifier(node.name)) {
+    function isReservedPrivateName(node: ClassElement) {
+        if (!node.name || !isPrivateIdentifier(node.name)) {
             return false;
         }
 

@@ -22,12 +22,8 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
 };
 var _a, _A_foo, _A_foo_1, _b, _B_foo;
 class A {
-    constructor() {
-        _A_foo_1 = { value: 1 };
-        // because static and instance private names
-        // share the same lexical scope
-        // https://tc39.es/proposal-class-fields/#prod-ClassBody
-    }
+    #foo = 1;
+    static #foo = true; // error (duplicate)
 }
 _a = A, _A_foo = new WeakMap();
 _A_foo_1 = { value: true }; // error (duplicate)
