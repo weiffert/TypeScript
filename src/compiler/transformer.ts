@@ -428,7 +428,12 @@ namespace ts {
                 lexicalEnvironmentFunctionDeclarations ||
                 lexicalEnvironmentStatements) {
                 if (lexicalEnvironmentFunctionDeclarations) {
-                    statements = [...lexicalEnvironmentFunctionDeclarations];
+                    if (!statements) {
+                        statements = [...lexicalEnvironmentFunctionDeclarations];
+                    }
+                    else {
+                        statements = [...statements, ...lexicalEnvironmentFunctionDeclarations];
+                    }
                 }
 
                 if (lexicalEnvironmentVariableDeclarations) {
@@ -488,6 +493,7 @@ namespace ts {
         function startBlockScope() {
             Debug.assert(state > TransformationState.Uninitialized, "Cannot start a block scope during initialization.");
             Debug.assert(state < TransformationState.Completed, "Cannot start a block scope after transformation has completed.");
+            Debug.assert(!lexicalEnvironmentSuspended, "Lexical environment is suspended.");
             blockScopedVariableDeclarationsStack[blockScopeStackOffset] = blockScopedVariableDeclarations;
             blockScopeStackOffset++;
             blockScopedVariableDeclarations = undefined!;
@@ -499,6 +505,8 @@ namespace ts {
         function endBlockScope() {
             Debug.assert(state > TransformationState.Uninitialized, "Cannot end a block scope during initialization.");
             Debug.assert(state < TransformationState.Completed, "Cannot end a block scope after transformation has completed.");
+            Debug.assert(!lexicalEnvironmentSuspended, "Lexical environment is suspended.");
+
             const statements: Statement[] | undefined = some(blockScopedVariableDeclarations) ?
                 [
                     setEmitFlags(factory.createVariableStatement(
