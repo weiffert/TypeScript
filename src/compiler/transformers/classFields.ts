@@ -347,11 +347,11 @@ namespace ts {
             return undefined;
         }
 
-        function createPrivateIdentifierAccess(info: PrivateIdentifierInfo, receiver: Expression): Expression {
-            return createPrivateIdentifierAccessHelper(info, visitNode(receiver, visitor, isExpression));
+        function createPrivateIdentifierAccess(info: PrivateIdentifierInfo, receiver: Expression, location: TextRange): Expression {
+            return createPrivateIdentifierAccessHelper(info, visitNode(receiver, visitor, isExpression), location);
         }
 
-        function createPrivateIdentifierAccessHelper(info: PrivateIdentifierInfo, receiver: Expression): Expression {
+        function createPrivateIdentifierAccessHelper(info: PrivateIdentifierInfo, receiver: Expression, location: TextRange): Expression {
             let getExpression: Expression;
 
             switch(info.kind) {
@@ -383,7 +383,8 @@ namespace ts {
                     Debug.assertNever(info, "Unknown private element type");
             }
 
-            setCommentRange(receiver, getExpression);
+            setCommentRange(getExpression, location);
+            setSourceMapRange(getExpression, location);
             return getExpression;
         }
 
@@ -392,7 +393,7 @@ namespace ts {
                 const privateIdentifierInfo = accessPrivateIdentifier(node.name);
                 if (privateIdentifierInfo) {
                     return setOriginalNode(
-                        createPrivateIdentifierAccess(privateIdentifierInfo, node.expression),
+                        createPrivateIdentifierAccess(privateIdentifierInfo, node.expression, node),
                         node
                     );
                 }
@@ -410,14 +411,15 @@ namespace ts {
                     const receiver = visitNode(node.operand.expression, visitor, isExpression);
                     const { readExpression, initializeExpression } = createCopiableReceiverExpr(receiver);
 
-                    const existingValue = factory.createPrefixUnaryExpression(SyntaxKind.PlusToken, createPrivateIdentifierAccess(info, readExpression));
+                    const existingValue = factory.createPrefixUnaryExpression(SyntaxKind.PlusToken, createPrivateIdentifierAccess(info, readExpression, node));
 
                     return setOriginalNode(
                         createPrivateIdentifierAssignment(
                             info,
                             initializeExpression || readExpression,
                             factory.createBinaryExpression(existingValue, operator, factory.createNumericLiteral(1)),
-                            SyntaxKind.EqualsToken
+                            SyntaxKind.EqualsToken,
+                            node
                         ),
                         node
                     );
@@ -436,7 +438,7 @@ namespace ts {
                     const receiver = visitNode(node.operand.expression, visitor, isExpression);
                     const { readExpression, initializeExpression } = createCopiableReceiverExpr(receiver);
 
-                    const existingValue = factory.createPrefixUnaryExpression(SyntaxKind.PlusToken, createPrivateIdentifierAccess(info, readExpression));
+                    const existingValue = factory.createPrefixUnaryExpression(SyntaxKind.PlusToken, createPrivateIdentifierAccess(info, readExpression, node));
 
                     // Create a temporary variable to store the value returned by the expression.
                     const returnValue = valueIsDiscarded ? undefined : factory.createTempVariable(hoistVariableDeclaration);
@@ -451,7 +453,8 @@ namespace ts {
                                     operator,
                                     factory.createNumericLiteral(1)
                                 ),
-                                SyntaxKind.EqualsToken
+                                SyntaxKind.EqualsToken,
+                                node
                             ),
                             returnValue
                         ])),
@@ -554,7 +557,7 @@ namespace ts {
                     const info = accessPrivateIdentifier(node.left.name);
                     if (info) {
                         return setOriginalNode(
-                            createPrivateIdentifierAssignment(info, node.left.expression, node.right, node.operatorToken.kind),
+                            createPrivateIdentifierAssignment(info, node.left.expression, node.right, node.operatorToken.kind, node),
                             node
                         );
                     }
@@ -563,7 +566,7 @@ namespace ts {
             return visitEachChild(node, visitor, context);
         }
 
-        function createPrivateIdentifierAssignment(info: PrivateIdentifierInfo, receiver: Expression, right: Expression, operator: AssignmentOperator): Expression {
+        function createPrivateIdentifierAssignment(info: PrivateIdentifierInfo, receiver: Expression, right: Expression, operator: AssignmentOperator, location: TextRange): Expression {
             receiver = visitNode(receiver, visitor, isExpression);
             right = visitNode(right, visitor, isExpression);
 
@@ -571,7 +574,7 @@ namespace ts {
                 const { readExpression, initializeExpression } = createCopiableReceiverExpr(receiver);
                 receiver = initializeExpression || readExpression;
                 right = factory.createBinaryExpression(
-                    createPrivateIdentifierAccessHelper(info, readExpression),
+                    createPrivateIdentifierAccessHelper(info, readExpression, location),
                     getNonAssignmentOperatorForCompoundAssignment(operator),
                     right
                 );
@@ -611,7 +614,8 @@ namespace ts {
                     Debug.assertNever(info, "Unknown private element type");
             }
 
-            setCommentRange(receiver, setExpression);
+            setCommentRange(setExpression, location);
+            setSourceMapRange(setExpression, location);
             return setExpression;
         }
 
@@ -1414,7 +1418,8 @@ namespace ts {
                                         info,
                                         receiver,
                                         parameter,
-                                        SyntaxKind.EqualsToken
+                                        SyntaxKind.EqualsToken,
+                                        node
                                     )
                                 )]
                             )

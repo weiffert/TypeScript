@@ -32,7 +32,8 @@ var _a, _Base_prop, _b, _Derived_derivedProp;
 class Base {
     static method(x) {
         Derived.; // error
-        __classPrivateFieldSet(Base, _a, 10, "f", _Base_prop);
+        __classPrivateFieldSet(// error
+        Base, _a, 10, "f", _Base_prop);
     }
 }
 _a = Base;

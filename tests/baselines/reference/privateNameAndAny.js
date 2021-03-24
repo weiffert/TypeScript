@@ -41,10 +41,14 @@ class A {
     }
     method(thing) {
         __classPrivateFieldGet(thing, _A_foo, "f"); // OK
-        __classPrivateFieldGet(thing, _a, "m", _A_m).call(thing);
+        __classPrivateFieldGet(// OK
+        thing, _a, "m", _A_m).call(// OK
+        thing);
         __classPrivateFieldGet(thing, _a, "f", _A_baz);
         thing.; // Error
-        __classPrivateFieldGet(thing, _A_foo, "f").call(thing);
+        __classPrivateFieldGet(// Error
+        thing, _A_foo, "f").call(// Error
+        thing);
     }
     methodU(thing) {
         __classPrivateFieldGet(thing, _A_foo, "f");
