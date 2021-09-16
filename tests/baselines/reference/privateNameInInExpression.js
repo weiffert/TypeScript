@@ -120,13 +120,13 @@ class Foo {
     goodRhs(v) {
         const a = #field in v;
         const b = #field in v.p1.p2;
-        const c = #field in v;
-        const d = #field in v;
-        const e = #field in v;
+        const c = () in v;
+        const d = () in v;
+        const e = () in v;
         for (let f in #field in v) { /**/ } // unlikely but valid
     }
     badRhs(v) {
-        const a = #field in v; // Bad - RHS of in must be object type or any
+        const a = () in v; // Bad - RHS of in must be object type or any
         const b = #fiel in v; // Bad - typo in privateID
         const c = (#field) in v; // Bad - privateID is not an expression on its own
         for (#field in v) { /**/ } // Bad - 'in' not allowed

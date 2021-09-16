@@ -2788,6 +2788,9 @@ namespace ts {
             else if (isLogicalOrCoalescingAssignmentOperator(operatorKind)) {
                 node.transformFlags |= TransformFlags.ContainsES2021;
             }
+            else if (operatorKind === SyntaxKind.InKeyword && isPrivateIdentifier(left)) {
+                node.transformFlags |= TransformFlags.ContainsESNext;
+            }
             return node;
         }
 

@@ -135,7 +135,7 @@ class Foo {
 >u : object | null
 
                 u; // good u is Foo
->u : Foo
+>u : object | null
 
             } else {
                 u; // good u is object | null
@@ -152,7 +152,7 @@ class Foo {
 >u : object
 
                     u; // good u is Foo
->u : Foo
+>u : object
 
                 } else {
                     u; // good u is object
@@ -164,7 +164,7 @@ class Foo {
 >u : object
 
                     u; // good u is Foo
->u : Foo
+>u : object
                 }
 
                 if (#staticField in u) {
@@ -172,7 +172,7 @@ class Foo {
 >u : object
 
                     u; // good u is typeof Foo
->u : typeof Foo
+>u : object
                 }
 
                 if (#staticMethod in u) {
@@ -180,7 +180,7 @@ class Foo {
 >u : object
 
                     u; // good u is typeof Foo
->u : typeof Foo
+>u : object
                 }
             }
         }
@@ -190,11 +190,11 @@ class Foo {
 >fb : Foo | Bar
 
             fb; // good fb is Foo
->fb : Foo
+>fb : Foo | Bar
 
         } else {
             fb; // good fb is Bar
->fb : Bar
+>fb : Foo | Bar
         }
 
         if (#field in fs) {
@@ -206,7 +206,7 @@ class Foo {
 
         } else {
             fs; // good fs is never
->fs : never
+>fs : FooSub
         }
 
         if (#field in b) {
@@ -214,7 +214,7 @@ class Foo {
 >b : Bar
 
             b; // good b is 'Bar & Foo'
->b : Bar & Foo
+>b : Bar
 
         } else {
             b; // good b is Bar
@@ -226,11 +226,11 @@ class Foo {
 >fsb : Bar | FooSub
 
             fsb; // good fsb is FooSub
->fsb : FooSub
+>fsb : Bar | FooSub
 
         } else {
             fsb; // good fsb is Bar
->fsb : Bar
+>fsb : Bar | FooSub
         }
 
         class Nested {
@@ -245,7 +245,7 @@ class Foo {
 >v : any
 
                     v; // good v is Foo
->v : Foo
+>v : any
                 }
             }
         }

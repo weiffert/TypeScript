@@ -1718,8 +1718,8 @@ namespace ts {
                         return emitPostfixUnaryExpression(node as PostfixUnaryExpression);
                     case SyntaxKind.BinaryExpression:
                         return emitBinaryExpression(node as BinaryExpression);
-                    case SyntaxKind.PrivateIdentifierInInExpression:
-                        return emitPrivateIdentifierInInExpression(node as PrivateIdentifierInInExpression);
+                    // case SyntaxKind.PrivateIdentifierInInExpression:
+                    //     return emitPrivateIdentifierInInExpression(node as PrivateIdentifierInInExpression);
                     case SyntaxKind.ConditionalExpression:
                         return emitConditionalExpression(node as ConditionalExpression);
                     case SyntaxKind.TemplateExpression:
@@ -2625,6 +2625,7 @@ namespace ts {
                 declarationListContainerEndStack: number[];
                 shouldEmitCommentsStack: boolean[];
                 shouldEmitSourceMapsStack: boolean[];
+                skip: boolean;
             }
 
             return createBinaryExpressionTrampoline(onEnter, onLeft, onOperator, onRight, onExit, /*foldState*/ undefined);
@@ -2652,16 +2653,29 @@ namespace ts {
                         declarationListContainerEndStack: [-1],
                         shouldEmitCommentsStack: [false],
                         shouldEmitSourceMapsStack: [false],
+                        skip: false,
                     };
                 }
+
+                if (node.operatorToken.kind === SyntaxKind.InKeyword && isPrivateIdentifier(node.left)) {
+                    state.skip = true;
+                    emitPrivateIdentifierInInExpression(node);
+                }
+
                 return state;
             }
 
-            function onLeft(next: Expression, _workArea: WorkArea, parent: BinaryExpression) {
+            function onLeft(next: Expression, workArea: WorkArea, parent: BinaryExpression) {
+                if (workArea.skip) {
+                    return;
+                }
                 return maybeEmitExpression(next, parent, "left");
             }
 
-            function onOperator(operatorToken: BinaryOperatorToken, _state: WorkArea, node: BinaryExpression) {
+            function onOperator(operatorToken: BinaryOperatorToken, state: WorkArea, node: BinaryExpression) {
+                if (state.skip) {
+                    return;
+                }
                 const isCommaOperator = operatorToken.kind !== SyntaxKind.CommaToken;
                 const linesBeforeOperator = getLinesBetweenNodes(node, node.left, operatorToken);
                 const linesAfterOperator = getLinesBetweenNodes(node, operatorToken, node.right);
@@ -2672,14 +2686,19 @@ namespace ts {
                 writeLinesAndIndent(linesAfterOperator, /*writeSpaceIfNotIndenting*/ true);
             }
 
-            function onRight(next: Expression, _workArea: WorkArea, parent: BinaryExpression) {
+            function onRight(next: Expression, workArea: WorkArea, parent: BinaryExpression) {
+                if (workArea.skip) {
+                    return;
+                }
                 return maybeEmitExpression(next, parent, "right");
             }
 
             function onExit(node: BinaryExpression, state: WorkArea) {
-                const linesBeforeOperator = getLinesBetweenNodes(node, node.left, node.operatorToken);
-                const linesAfterOperator = getLinesBetweenNodes(node, node.operatorToken, node.right);
-                decreaseIndentIf(linesBeforeOperator, linesAfterOperator);
+                if (!state.skip) {
+                    const linesBeforeOperator = getLinesBetweenNodes(node, node.left, node.operatorToken);
+                    const linesAfterOperator = getLinesBetweenNodes(node, node.operatorToken, node.right);
+                    decreaseIndentIf(linesBeforeOperator, linesAfterOperator);
+                }
                 if (state.stackIndex > 0) {
                     const savedPreserveSourceNewlines = state.preserveSourceNewlinesStack[state.stackIndex];
                     const savedContainerPos = state.containerPosStack[state.stackIndex];
@@ -2693,6 +2712,7 @@ namespace ts {
                     onAfterEmitNode?.(node);
                     state.stackIndex--;
                 }
+                state.skip = false;
             }
 
             function maybeEmitExpression(next: Expression, parent: BinaryExpression, side: "left" | "right") {
@@ -2721,21 +2741,21 @@ namespace ts {
             }
         }
 
-        function emitPrivateIdentifierInInExpression(node: PrivateIdentifierInInExpression) {
-            const linesBeforeIn = getLinesBetweenNodes(node, node.name, node.inToken);
-            const linesAfterIn = getLinesBetweenNodes(node, node.inToken, node.expression);
+        function emitPrivateIdentifierInInExpression(node: BinaryExpression) {
+            const linesBeforeIn = getLinesBetweenNodes(node, node.left, node.operatorToken);
+            const linesAfterIn = getLinesBetweenNodes(node, node.operatorToken, node.right);
 
-            emitLeadingCommentsOfPosition(node.name.pos);
-            emitPrivateIdentifier(node.name);
-            emitTrailingCommentsOfPosition(node.name.end);
+            emitLeadingCommentsOfPosition(node.left.pos);
+            emitPrivateIdentifier(node.left as Node as PrivateIdentifier);
+            emitTrailingCommentsOfPosition(node.left.end);
 
             writeLinesAndIndent(linesBeforeIn, /*writeSpaceIfNotIndenting*/ true);
-            emitLeadingCommentsOfPosition(node.inToken.pos);
-            writeTokenNode(node.inToken, writeKeyword);
-            emitTrailingCommentsOfPosition(node.inToken.end, /*prefixSpace*/ true);
+            emitLeadingCommentsOfPosition(node.operatorToken.pos);
+            writeTokenNode(node.operatorToken, writeKeyword);
+            emitTrailingCommentsOfPosition(node.operatorToken.end, /*prefixSpace*/ true);
             writeLinesAndIndent(linesAfterIn, /*writeSpaceIfNotIndenting*/ true);
 
-            emit(node.expression);
+            emit(node.right);
             decreaseIndentIf(linesBeforeIn, linesAfterIn);
         }
 

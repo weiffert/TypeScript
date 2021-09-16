@@ -81,7 +81,7 @@ class Foo {
 >#field in v : boolean
 >v : any
 >#field in v : boolean
->v : Foo
+>v : any
     }
     invalidLHS(v: any) {
 >invalidLHS : (v: any) => void
